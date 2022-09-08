@@ -149,10 +149,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-REST_FRAMEWORK = {
 
-    'DATETIME_FORMAT': "%d.%m.%Y %H:%M:%S",
-}
 
 ##swagger settingsDoc
 LOGIN_URL = '/api/v1/login'
@@ -252,14 +249,18 @@ AUTH_USER_MODEL = 'newsapp.Author'
 # JWT 
 
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 4,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DATETIME_FORMAT': "%d.%m.%Y %H:%M",
+ 
 }
 #JWT настройки
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=500),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
     'SIGNING_KEY': SECRET_KEY,
     'ROTATE_REFRESH_TOKENS': True,

@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class NewsSerilaizers(serializers.ModelSerializer):
-  
+    date_add = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
     class Meta:
         model = News
         fields = (
@@ -123,6 +123,7 @@ class AuthorSerilizerUsername(serializers.ModelSerializer):
 
 class SearchSerilizer(serializers.ModelSerializer):
       user=AuthorSerilizerUsername()
+      date_add = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
       class Meta:
         model = News
         fields = (
@@ -144,7 +145,7 @@ class AuthorSerilizer(serializers.ModelSerializer):
 
 class Last_News_Serilizer(serializers.ModelSerializer):
     user=AuthorSerilizer()
-
+    date_add = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
     
     class Meta:
         model= News

@@ -2,10 +2,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
 
 
-import pytz
-import datetime
-
-
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework import status
@@ -13,6 +9,7 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.pagination import PageNumberPagination
 
 
 from .serilaizers import RegistrationSerializer
@@ -20,26 +17,23 @@ from .serilaizers  import NewsSerilaizers,Last_News_Serilizer,LogoutSerilizers,P
 from .models import News,last_News_date,Author
 
 
-from .utils import captcha_gen,captcha_validetet
+from .utils import captcha_gen,captcha_validetet,date_time_now,date_time_format
 
 
 from captcha.models import CaptchaStore
 
+from .auth import user
 
-class News_Views(APIView):
-    
+import pytz
+import datetime
+
+
+class News_Views(generics.ListAPIView):
+    queryset=News.objects.filter(published=True)
     serializer_class = NewsSerilaizers
-    
-    def get(self,request):
-   
-        queryset = self.get_queryset()
-        serializer = NewsSerilaizers(queryset, many=True)
+    pagination_class = PageNumberPagination
 
-        return Response(serializer.data)
 
-    def get_queryset(self):
-        
-        return News.objects.filter(published=True)
 
 
 class Post_News(generics.GenericAPIView):
@@ -51,44 +45,32 @@ class Post_News(generics.GenericAPIView):
         # стандартный, и его можно часто увидеть в реальных проектах.
         
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if str(user(request))==str(request.data['user']):
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({"sucess":"Ваш пост создался"},status=status.HTTP_200_OK)
+        else:
+            return Response({"error":"Ошибка авторизаций"},status=status.HTTP_401_UNAUTHORIZED)
+
         
-        return Response({"sucess":"Ваш пост создался"},status=status.HTTP_200_OK)
     
 
-class MainNews(APIView):
-    
+class MainNews(generics.ListAPIView):
+    queryset=News.objects.filter(main_news=True,published=True)
     serializer_class = NewsSerilaizers
+    pagination_class = PageNumberPagination
     
-    def get(self,request):
-   
-
-        queryset = self.get_queryset()
-        serializer = NewsSerilaizers(queryset, many=True)
-
-        return Response(serializer.data)
-
-    def get_queryset(self):
-        
-        return News.objects.filter(main_news=True,published=True)
 
 
-class Last_News_Views(APIView):
+class Last_News_Views(generics.ListAPIView):
+    Almaty = pytz.timezone("Asia/Almaty")
+    timeInAlmaty = datetime.datetime.now(Almaty)
+
+    currenttimeInAlmaty= timeInAlmaty.strftime(date_time_format())
+    queryset = News.objects.filter(date_add__range=(last_News_date.objects.filter(trues=True).first().last_news_date,datetime.datetime.strptime(currenttimeInAlmaty,date_time_format())),published=True)
     serializer_class=Last_News_Serilizer
- 
-    def get(self,request):
-    # фильтрация статьей по дате новизне
-        Almaty = pytz.timezone("Asia/Almaty") 
-        timeInAlmaty = datetime.datetime.now(Almaty)
-        DATA_TIME_FORMAT="%Y-%m-%d %H:%M:%S"
-        currenttimeInAlmaty= timeInAlmaty.strftime(DATA_TIME_FORMAT)
-
-
-        queryset = News.objects.filter(date_add__range=(last_News_date.objects.filter(trues=True).first().last_news_date,datetime.datetime.strptime(currenttimeInAlmaty,DATA_TIME_FORMAT)),published=True)
-        serializer = Last_News_Serilizer(queryset, many=True)
+    pagination_class = PageNumberPagination
        
-        return Response(serializer.data)
  
 
 class GetPost(APIView):

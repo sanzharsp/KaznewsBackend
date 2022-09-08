@@ -5,6 +5,10 @@ from captcha.models import CaptchaStore
 from captcha.helpers import captcha_image_url
 from rest_framework.response import Response
 
+#работа с датой
+import pytz
+import datetime
+
 """ функция с использованием регулярных выпажений для удалений html тегов """
 
 def html_tags_delete(html_string):
@@ -41,4 +45,12 @@ def captcha_validetet(request,hash_key,get_text):
 
         return False
         
-
+def date_time_format():
+      return "%Y-%m-%d %H:%M:%S"
+      
+def date_time_now():
+    Almaty = pytz.timezone("Asia/Almaty") 
+    timeInAlmaty = datetime.datetime.now(Almaty)
+  
+    currenttimeInAlmaty= timeInAlmaty.strftime(date_time_format())
+    return currenttimeInAlmaty

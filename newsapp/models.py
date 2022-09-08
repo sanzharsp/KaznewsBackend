@@ -66,7 +66,7 @@ class Author(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural='Авторы'
 
     def __str__(self):
-        return "{} {} {}".format(self.first_name,self.last_name,self.surname)
+        return "{}".format(self.username)
 
     @property
     def token(self):
