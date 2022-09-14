@@ -2,7 +2,7 @@ from re import I
 from rest_framework import serializers
 from .models import News
 from .models import Author
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -174,7 +174,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Author
-        # Перечислить все поля, которые могут быть включены в запрос
+        # Перечислить все поля, которые могут быть включеWны в запрос
         # или ответ, включая поля, явно указанные выше.
         fields = ['username','first_name','last_name','surname','email', 'password']
 
@@ -193,3 +193,13 @@ class LogoutSerilizers(serializers.Serializer):
         label="Refresh токен"
 
     )
+
+class AuthorizateSerializer(TokenObtainPairSerializer):
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        refresh = self.get_token(self.user)
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        data['user'] =AuthorSerilizer(Author.objects.get(username=self.user)).data
+        return data

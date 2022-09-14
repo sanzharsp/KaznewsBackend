@@ -10,24 +10,37 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serilaizers import RegistrationSerializer
-from .serilaizers  import NewsSerilaizers,Last_News_Serilizer,LogoutSerilizers,PostCreatedSerilaizers,SearchSerilizer
+from .serilaizers  import (NewsSerilaizers,
+                            Last_News_Serilizer,
+                            LogoutSerilizers,
+                            PostCreatedSerilaizers,
+                            SearchSerilizer,
+                            AuthorizateSerializer)
+
 from .models import News,last_News_date,Author
 
 
-from .utils import captcha_gen,captcha_validetet,date_time_now,date_time_format
+from .utils import captcha_gen,captcha_validetet,date_time_format
 
 
 from captcha.models import CaptchaStore
 
 from .auth import user
 
+from newsprojects.settings import TIME_ZONE
+   
 import pytz
 import datetime
 
 
+# Refresh TokenObtainPairView (add user)
+class AuthorizateView(TokenObtainPairView):
+    serializer_class= AuthorizateSerializer
+
+    
 class News_Views(generics.ListAPIView):
     queryset=News.objects.filter(published=True)
     serializer_class = NewsSerilaizers
@@ -45,12 +58,13 @@ class Post_News(generics.GenericAPIView):
         # стандартный, и его можно часто увидеть в реальных проектах.
         
         serializer = self.get_serializer(data=request.data)
-        if str(user(request))==str(request.data['user']):
-            serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=True)
+        if str(user(request)) == str(request.data['user']): 
             serializer.save()
             return Response({"sucess":"Ваш пост создался"},status=status.HTTP_200_OK)
         else:
-            return Response({"error":"Ошибка авторизаций"},status=status.HTTP_401_UNAUTHORIZED)
+          
+            return Response({"error":"Имя пользователя не было передана или он подменен"},status=status.HTTP_401_UNAUTHORIZED)
 
         
     
@@ -63,11 +77,12 @@ class MainNews(generics.ListAPIView):
 
 
 class Last_News_Views(generics.ListAPIView):
-    Almaty = pytz.timezone("Asia/Almaty")
+    Almaty = pytz.timezone(TIME_ZONE)
     timeInAlmaty = datetime.datetime.now(Almaty)
-
     currenttimeInAlmaty= timeInAlmaty.strftime(date_time_format())
-    queryset = News.objects.filter(date_add__range=(last_News_date.objects.filter(trues=True).first().last_news_date,datetime.datetime.strptime(currenttimeInAlmaty,date_time_format())),published=True)
+    queryset = News.objects.filter(date_add__range=(last_News_date.objects.filter(trues=True).first().last_news_date,
+                datetime.datetime.strptime(currenttimeInAlmaty,date_time_format())),
+                published=True)
     serializer_class=Last_News_Serilizer
     pagination_class = PageNumberPagination
        

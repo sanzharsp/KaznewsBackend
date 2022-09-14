@@ -6,18 +6,22 @@ from .views import (Post_News,
                     News_Views,MainNews,
                     Last_News_Views,GetPost,
                     LogoutView,
-                    SearchPostAPI
+                    SearchPostAPI,
+                    AuthorizateView
                     )
+ 
 
+from rest_framework_simplejwt.views import (
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
-from rest_framework_simplejwt import views as jwt_views    #JWT 
-from rest_framework_simplejwt.views import TokenVerifyView #JWT 
 
 urlpatterns = [
     #auth
     path('api/v1/register/', RegistrationAPIView.as_view()),
-    path('api/v1/login/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/v1/login/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/login/', AuthorizateView.as_view(), name='token_obtain_pair'),
+    path('api/v1/login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/logout/', LogoutView.as_view(), name='auth_logout'),
     path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
