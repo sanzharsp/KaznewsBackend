@@ -12,13 +12,22 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+
+import jwt as JWT_
+
+
 from .serilaizers import RegistrationSerializer
-from .serilaizers  import (NewsSerilaizers,
-                            Last_News_Serilizer,
-                            LogoutSerilizers,
-                            PostCreatedSerilaizers,
-                            SearchSerilizer,
-                            AuthorizateSerializer)
+from .serilaizers  import (
+                        NewsSerilaizers,
+                        Last_News_Serilizer,
+                        LogoutSerilizers,
+                        PostCreatedSerilaizers,
+                        SearchSerilizer,
+                        AuthorizateSerializer,
+                        AuthorSerilizer,
+                        AuthorDetailSerilizer,
+                        
+                        )
 
 from .models import News,last_News_date,Author
 
@@ -30,7 +39,7 @@ from captcha.models import CaptchaStore
 
 from .auth import user
 
-from newsprojects.settings import TIME_ZONE
+from newsprojects.settings import TIME_ZONE,SIMPLE_JWT
    
 import pytz
 import datetime
@@ -39,6 +48,42 @@ import datetime
 # Refresh TokenObtainPairView (add user)
 class AuthorizateView(TokenObtainPairView):
     serializer_class= AuthorizateSerializer
+    
+
+
+class ProfileView(generics.GenericAPIView):
+    serializer_class=AuthorSerilizer
+    permission_classes = (IsAuthenticated,)
+    def get(self,request):
+        refresh_token_get = request.META.get('HTTP_AUTHORIZATION', ' ').split(' ')[1]
+        jwt=JWT_.decode(
+            refresh_token_get,
+            SIMPLE_JWT['SIGNING_KEY'],
+        algorithms = [SIMPLE_JWT['ALGORITHM']],
+            )
+        
+        queryset=Author.objects.get(id=jwt['user_id'])
+        serilaizers= self.get_serializer(queryset)
+        return Response(serilaizers.data)
+
+class ProfileDetailView(generics.GenericAPIView):
+    serializer_class=AuthorDetailSerilizer
+    permission_classes = (IsAuthenticated,)
+    def get(self,request):
+        refresh_token_get = request.META.get('HTTP_AUTHORIZATION', ' ').split(' ')[1]
+        jwt=JWT_.decode(
+            refresh_token_get,
+            SIMPLE_JWT['SIGNING_KEY'],
+        algorithms = [SIMPLE_JWT['ALGORITHM']],
+            )
+        
+        queryset=Author.objects.get(id=jwt['user_id'])
+        serilaizers= self.get_serializer(queryset)
+        return Response(serilaizers.data,status=status.HTTP_200_OK)
+
+ 
+
+ 
 
     
 class News_Views(generics.ListAPIView):
@@ -201,3 +246,6 @@ class LogoutView(generics.GenericAPIView):
             "message": "Токен уже в черном списке"
         }
     ]},status=status.HTTP_400_BAD_REQUEST)
+
+
+

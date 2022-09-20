@@ -7,7 +7,9 @@ from .views import (Post_News,
                     Last_News_Views,GetPost,
                     LogoutView,
                     SearchPostAPI,
-                    AuthorizateView
+                    AuthorizateView,
+                    ProfileView,
+                    ProfileDetailView
                     )
  
 
@@ -26,17 +28,22 @@ urlpatterns = [
     path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
 
+
     #get
     path('', News_Views.as_view()),
     path('api/v1/news/get/main_news',MainNews.as_view()),
     path('api/v1/news/get/last_news',Last_News_Views.as_view()),
     path('api/v1/news/get/content/<int:pk>',GetPost.as_view()),
     path('api/v1/news/get/search',SearchPostAPI.as_view()),
+    #profile get
+    path('api/v1/user/info',ProfileView.as_view()),
+    path('api/v1/news/get/profile',ProfileDetailView.as_view()),
     
 
 
     #post
     path('api/v1/news/post/new_post',Post_News.as_view()),
+
 
     
 

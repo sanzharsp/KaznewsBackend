@@ -34,6 +34,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+
+
+
     'jazzmin',
     'drf_yasg', #documentation for swagger
     'newsapp',
@@ -44,6 +47,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'captcha',
+
+
+    
      #################################
     'django.contrib.admin',
     'django.contrib.auth',
@@ -269,8 +275,8 @@ REST_FRAMEWORK = {
 #JWT настройки
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=30), #minutes=1
-    "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=7), 
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=60),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,

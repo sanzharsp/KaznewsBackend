@@ -1,4 +1,3 @@
-from re import I
 from rest_framework import serializers
 from .models import News
 from .models import Author
@@ -143,6 +142,13 @@ class AuthorSerilizer(serializers.ModelSerializer):
         model = Author
         fields = 'first_name','last_name','username'
 
+
+class AuthorDetailSerilizer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Author
+        fields = 'username','first_name','last_name','surname','created_at','email'
+
 class Last_News_Serilizer(serializers.ModelSerializer):
     user=AuthorSerilizer()
     date_add = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
@@ -198,8 +204,9 @@ class AuthorizateSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        refresh = self.get_token(self.user)
+        user = self.user
+        refresh = self.get_token(user)
         data['refresh'] = str(refresh)
         data['access'] = str(refresh.access_token)
-        data['user'] =AuthorSerilizer(Author.objects.get(username=self.user)).data
+        data['user'] =AuthorSerilizer(Author.objects.get(username=user)).data
         return data
