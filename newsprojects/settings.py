@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 from pathlib import Path
-from datetime import timedelta 
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,15 +28,12 @@ DRF_RECAPTCHA_SECRET_KEY='6LcYnvsgAAAAAIzPFpjDSvwhgSvHRAa_5jajQZuz'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-
-
-
     'jazzmin',
     'drf_yasg', #documentation for swagger
     'newsapp',
@@ -47,9 +44,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'captcha',
-
-
-    
      #################################
     'django.contrib.admin',
     'django.contrib.auth',
@@ -71,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 
@@ -87,8 +82,6 @@ CORS_ALLOWED_ORIGINS = [
 
 
 CORS_ALLOW_CREDENTIALS = True
-
-
 
 ROOT_URLCONF = 'newsprojects.urls'
 
@@ -146,7 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-DATETIME_FORMAT='Y-M-D h:i' 
+DATETIME_FORMAT='Y-M-D h:i'
 
 TIME_ZONE = 'Asia/Almaty'
 
@@ -157,12 +150,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 
 
 
@@ -184,7 +177,7 @@ SWAGGER_SETTINGS = {
 
 REDOC_SETTINGS = {
    'LAZY_RENDERING': True,
-   
+
 }
 
 
@@ -261,8 +254,9 @@ CKEDITOR_CONFIGS = {
 
 
 AUTH_USER_MODEL = 'newsapp.Author'
-# JWT 
+# JWT
 
+LANGUAGE_CODE = "ru-ru"
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 4,
@@ -270,12 +264,12 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DATETIME_FORMAT': "%d.%m.%Y %H:%M",
- 
+
 }
 #JWT настройки
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=7), 
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=7),
     "REFRESH_TOKEN_LIFETIME": timedelta(hours=60),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -297,7 +291,7 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-#капча 
+#капча
 
 CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 CAPTCHA_IMAGE_SIZE = (170, 50)
@@ -441,7 +435,7 @@ JAZZMIN_SETTINGS = {
     "changeform_format_overrides": {"newsapp.Author": "collapsible", "auth.group": "vertical_tabs"},
     # Add a language dropdown into the admin
     "language_chooser": True,
-    
+
 }
 
 
@@ -452,3 +446,5 @@ JAZZMIN_SETTINGS = {
 #     "theme": "flatly",
 #     "dark_mode_theme": "darkly",
 # }
+
+

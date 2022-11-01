@@ -103,6 +103,12 @@ class Author(AbstractBaseUser, PermissionsMixin):
 
         return token
 
+
+LIKE_CHOICES = (
+    ('Like', True),
+    ('Unlike', False),
+)  
+
 class News(models.Model):
     user=models.ForeignKey(Author, verbose_name='Автор', on_delete=models.CASCADE)
     title= RichTextField(db_index=True,verbose_name='Наименования новости' )
@@ -114,6 +120,8 @@ class News(models.Model):
     content_text= RichTextField(db_index=True,verbose_name='Текст новости')
     main_news=models.BooleanField(db_index=True,verbose_name='Главные новости', default=False)
     category=models.CharField(db_index=True,default="новая запись" ,max_length=150,verbose_name="Категория")
+    likes = models.ManyToManyField(Author,blank=True, verbose_name='Лайки' ,related_name='likes')
+    value = models.CharField(choices=LIKE_CHOICES, max_length=8,verbose_name='Значения',default='Like')
     published=models.BooleanField(db_index=True,verbose_name='Публиковать', default=False)
 
     

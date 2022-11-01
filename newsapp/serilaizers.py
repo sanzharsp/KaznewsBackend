@@ -20,8 +20,19 @@ class NewsSerilaizers(serializers.ModelSerializer):
                 'date_add',
                 'content_text',
                 'main_news',
-                'category')
+                'category',
+                'likes',
+                'value',
+                )
 
+
+class LikeSerilizer(serializers.ModelSerializer):
+    post = serializers.IntegerField(
+        label=("Id поста"),
+        write_only=True)
+    class Meta:
+        model = News
+        fields = ( 'post',)
 
 
 
@@ -136,6 +147,9 @@ class SearchSerilizer(serializers.ModelSerializer):
                 )
 
 
+
+#Author model 
+
 class AuthorSerilizer(serializers.ModelSerializer):
     
     class Meta:
@@ -149,15 +163,10 @@ class AuthorDetailSerilizer(serializers.ModelSerializer):
         model = Author
         fields = 'username','first_name','last_name','surname','created_at','email'
 
-class Last_News_Serilizer(serializers.ModelSerializer):
-    user=AuthorSerilizer()
-    date_add = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
-    
+class PasswordResetSerilizer(serializers.ModelSerializer):
     class Meta:
-        model= News
-        fields = ('id','title','image1','category','user','context','date_add')
-
-
+        model = Author
+        fields = 'email',
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """ Сериализация регистрации пользователя и создания нового. """
@@ -210,3 +219,22 @@ class AuthorizateSerializer(TokenObtainPairSerializer):
         data['access'] = str(refresh.access_token)
         data['user'] =AuthorSerilizer(Author.objects.get(username=user)).data
         return data
+
+
+
+class Last_News_Serilizer(serializers.ModelSerializer):
+    user=AuthorSerilizer()
+    date_add = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+    
+    class Meta:
+        model= News
+        fields = ('id','title','image1','category','user','context','date_add','published','likes','value',)
+
+
+
+class Post_id_Serilizer(serializers.ModelSerializer):
+    post_id= serializers.DecimalField(max_digits=19, decimal_places=10, label="id поста")
+    class Meta:
+        model= News
+        fields = ('post_id',)
+

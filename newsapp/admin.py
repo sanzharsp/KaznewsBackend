@@ -10,11 +10,6 @@ from captcha.models import CaptchaStore
 
 
 
-from rest_framework_simplejwt.token_blacklist.admin import OutstandingTokenAdmin
-from rest_framework_simplejwt.token_blacklist import models
-from rest_framework_simplejwt.token_blacklist.apps import  TokenBlacklistConfig
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken,OutstandingToken
-
 
 class NewsAdmin(admin.ModelAdmin):
     list_display = ('get_author','date_add')
@@ -54,28 +49,14 @@ class CaptchaStoreAdmin(admin.ModelAdmin):
     CaptchaStore._meta.verbose_name ="Каптча"
     CaptchaStore._meta.verbose_name_plural ="Каптчы"
 
-class OutstandingTokenAdmin(OutstandingTokenAdmin):
-    TokenBlacklistConfig.verbose_name='Токены JWT'
-   
-    def has_delete_permission(self, *args, **kwargs):
-        return True # or whatever logic you want
 
-
-class RefreshBlacklistedToken(BlacklistedToken):
-    BlacklistedToken._meta.verbose_name_plural='Черный список токенов'
-    BlacklistedToken._meta.verbose_name='Черный список'
-
-class RefreshOutstandingToken(OutstandingToken):
-    OutstandingToken._meta.verbose_name_plural='JWT токены'
-    OutstandingToken._meta.verbose_name='JWT Токен'
 
 # Register your models here.
 admin.site.register(News)
 admin.site.register(Author,Author_Admin)
 admin.site.register(last_News_date,Last_News_Date_Admin)
 admin.site.register(CaptchaStore,CaptchaStoreAdmin)
-admin.site.unregister(models.OutstandingToken)
-admin.site.register(models.OutstandingToken, OutstandingTokenAdmin)
+
 
 admin.site.site_header="Новостная лента" # Шапка приложения
 

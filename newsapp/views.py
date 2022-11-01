@@ -12,9 +12,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-
 import jwt as JWT_
-
+from .pagination import CustomPagination
 
 from .serilaizers import RegistrationSerializer
 from .serilaizers  import (
@@ -26,23 +25,23 @@ from .serilaizers  import (
                         AuthorizateSerializer,
                         AuthorSerilizer,
                         AuthorDetailSerilizer,
+                        LikeSerilizer,
+                        Post_id_Serilizer,
                         
                         )
 
 from .models import News,last_News_date,Author
 
 
-from .utils import captcha_gen,captcha_validetet,date_time_format
+from .utils import captcha_gen,captcha_validetet
 
 
 from captcha.models import CaptchaStore
 
 from .auth import user
 
-from newsprojects.settings import TIME_ZONE,SIMPLE_JWT
-   
-import pytz
-import datetime
+from newsprojects.settings import SIMPLE_JWT
+
 
 
 # Refresh TokenObtainPairView (add user)
@@ -65,6 +64,25 @@ class ProfileView(generics.GenericAPIView):
         queryset=Author.objects.get(id=jwt['user_id'])
         serilaizers= self.get_serializer(queryset)
         return Response(serilaizers.data)
+
+
+class UserPostView(generics.ListAPIView):
+    serializer_class=Last_News_Serilizer
+    pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticated,)
+
+    def get(self,request):
+        refresh_token_get = request.META.get('HTTP_AUTHORIZATION', ' ').split(' ')[1]
+        jwt=JWT_.decode(
+            refresh_token_get,
+            SIMPLE_JWT['SIGNING_KEY'],
+        algorithms = [SIMPLE_JWT['ALGORITHM']],
+            )
+        
+        queryset=News.objects.filter(user=jwt['user_id'])
+        serilaizers= self.get_serializer(queryset, many=True)
+        return Response(serilaizers.data)
+
 
 class ProfileDetailView(generics.GenericAPIView):
     serializer_class=AuthorDetailSerilizer
@@ -122,15 +140,23 @@ class MainNews(generics.ListAPIView):
 
 
 class Last_News_Views(generics.ListAPIView):
-    Almaty = pytz.timezone(TIME_ZONE)
-    timeInAlmaty = datetime.datetime.now(Almaty)
-    currenttimeInAlmaty= timeInAlmaty.strftime(date_time_format())
-    queryset = News.objects.filter(date_add__range=(last_News_date.objects.filter(trues=True).first().last_news_date,
-                datetime.datetime.strptime(currenttimeInAlmaty,date_time_format())),
-                published=True)
     serializer_class=Last_News_Serilizer
-    pagination_class = PageNumberPagination
-       
+    pagination_class = CustomPagination
+    def get(self, request):
+      
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            result = self.get_paginated_response(serializer.data)
+            data = result.data # pagination data
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+        return Response(data)
+
+    def get_queryset(self):
+        return News.objects.filter(date_add__gte=(last_News_date.objects.filter(trues=True).first().last_news_date),published=True)
  
 
 class GetPost(APIView):
@@ -215,7 +241,7 @@ class RegistrationAPIView(generics.GenericAPIView):
  
         
 
-class LogoutView(generics.GenericAPIView):
+class LogoutViewV1(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class=LogoutSerilizers
     def post(self, request):
@@ -248,4 +274,88 @@ class LogoutView(generics.GenericAPIView):
     ]},status=status.HTTP_400_BAD_REQUEST)
 
 
+# система лайков продукта
+class AddLike(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LikeSerilizer
+    def post(self,request,*args,**kwargs):
+        refresh_token_get = request.META.get('HTTP_AUTHORIZATION', ' ').split(' ')[1]
+        jwt=JWT_.decode(
+            refresh_token_get,
+            SIMPLE_JWT['SIGNING_KEY'],
+        algorithms = [SIMPLE_JWT['ALGORITHM']],
+            )
+        
+        author=Author.objects.get(id=jwt['user_id'])
+        posts=request.data['post']
+        post=0
+        try:
+            post=News.objects.get(pk=posts)
+        except ObjectDoesNotExist:
+            data={"error":"post not found"}
+            return Response(data,status=status.HTTP_404_NOT_FOUND)
+        is_like=False
+        for like in post.likes.all():
+            if like==request.user:
+                is_like=True
+                break  
+        if not is_like:
+            post.likes.add(author)
+            post.value='Like'   
+        if is_like:
+            post.likes.remove(author)
+            post.value='Unlike'
+          
+        post.save()
+        
+        data={  
+                'is_like':is_like,
+                'post_like':post.likes.all().count(),
+        }
+        return Response(data, status=status.HTTP_201_CREATED)
 
+
+#delete post
+class DeletePostApi(generics.GenericAPIView):
+    serializer_class=Post_id_Serilizer
+    permission_classes = (IsAuthenticated,)
+    def delete(self, request,pk, *args, **kwargs):
+        refresh_token_get = request.META.get('HTTP_AUTHORIZATION', ' ').split(' ')[1]
+        jwt=JWT_.decode(
+            refresh_token_get,
+            SIMPLE_JWT['SIGNING_KEY'],
+        algorithms = [SIMPLE_JWT['ALGORITHM']],
+            )
+        author=Author.objects.get(id=jwt['user_id'])
+        try:
+            post=News.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            data={"error":"post not found"}
+            return Response(data,status=status.HTTP_404_NOT_FOUND)
+        if (post.user.id == author.id):
+            post.delete()
+            return Response({'success': True},status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False},status=status.HTTP_403_FORBIDDEN)
+
+#post verify
+class PostApiIdentificated(generics.GenericAPIView):
+    serializer_class=Post_id_Serilizer
+    #permission_classes = (IsAuthenticated,)
+    def post(self, request, *args, **kwargs):
+        refresh_token_get = request.META.get('HTTP_AUTHORIZATION', ' ').split(' ')[1]
+        jwt=JWT_.decode(
+            refresh_token_get,
+            SIMPLE_JWT['SIGNING_KEY'],
+        algorithms = [SIMPLE_JWT['ALGORITHM']],
+            )
+        author=Author.objects.get(id=jwt['user_id'])
+        try:
+            post=News.objects.get(id=request.data['post_id'])
+        except ObjectDoesNotExist:
+            data={"error":"post not found"}
+            return Response(data,status=status.HTTP_404_NOT_FOUND)
+        if (post.user.id == author.id):
+            return Response({'post': True},status=status.HTTP_200_OK)
+        else:
+            return Response({'post': False},status=status.HTTP_403_FORBIDDEN)
